@@ -1,0 +1,9 @@
+* text=auto eol=crlf
+*.obj binary
+*.jpg binary
+*.png binary
+*.gif binary
+*.mp4 binary
+*.ico binary
+*.icns binary
+*.pdf binary
