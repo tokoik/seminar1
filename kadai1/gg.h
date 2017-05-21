@@ -1269,8 +1269,8 @@ extern PFNGLWEIGHTPATHSNVPROC glWeightPathsNV;
 extern PFNGLWINDOWRECTANGLESEXTPROC glWindowRectanglesEXT;
 #elif defined(__APPLE__)
 #  define GLFW_INCLUDE_GLCOREARB
+#  define GLFW_INCLUDE_GLEXT
 #  include "glfw3.h"
-#  include <OpenGL/gl3ext.h>
 #elif defined(X11)
 #  define GL_GLEXT_PROTOTYPES
 #  include <GLFW/glfw3.h>
