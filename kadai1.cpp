@@ -25,6 +25,9 @@ cv::VideoCapture video;
 // 最初のフレームを取得した時刻
 double start;
 
+// カスケード分類器
+cv::CascadeClassifier ccls;
+
 //
 // 設定（最初に一度だけ実行されます）
 //
@@ -53,6 +56,9 @@ bool setup()
 
   // 色データのアスペクト比を求める
   aspect = float(image.cols) / float(image.rows);
+
+  // 顔の分類器を読み込む
+  if (!ccls.load("haarcascade_frontalface_default.xml")) return false;
 
   // セットアップに成功した
   return true;
@@ -95,6 +101,11 @@ bool update()
       cv::Sobel(gray, sobelX, CV_8U, 1, 0);
       cv::Sobel(gray, sobelY, CV_8U, 0, 1);
       gray = (sobelX + sobelY) * 0.5;
+
+      // 顔の検出
+      std::vector<cv::Rect> objects;
+      ccls.detectMultiScale(gray, objects);
+      for (auto &o : objects) cv::rectangle(image, o, cv::Scalar(0, 0, 255));
 
       // 取得したフレームを転送する
       submitColor(image);
