@@ -41,9 +41,9 @@ bool setup()
       const float latitude_color{ sin(10.0f * pi * v) * 0.5f + 0.5f };
 
       // 頂点の位置
-      point[j][i][0] = sin(longtude);
-      point[j][i][1] = v * 2.0f - 1.0f;
-      point[j][i][2] = cos(longtude);
+      point[j][i][0] = sin(latitude) * sin(longtude);
+      point[j][i][1] = -cos(latitude);
+      point[j][i][2] = sin(latitude) * cos(longtude);
 
       // 頂点の色
       color[j][i][0] = 100;
