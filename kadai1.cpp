@@ -64,7 +64,7 @@ bool setup()
 bool update()
 {
   // 経過時間
-  const double elaps{ getTime() - start };
+  const double elaps(getTime() - start);
 
   // 経過時間が現在のフレームの時刻に達していたら
   if (elaps >= video.get(cv::CAP_PROP_POS_MSEC) * 0.001)
@@ -90,42 +90,38 @@ bool update()
       cv::Mat gray;
       cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
 
-      // グレースケール画像を BGR に戻す
-      cv::cvtColor(gray, image, cv::COLOR_GRAY2BGR);
-
       // 取得したフレームを転送する
       submitColor(image);
+
+      // グレースケール画像を点データの大きさに伸縮する
+      cv::resize(gray, gray, cv::Size(stacks, slices));
+
+      // グレースケール画像を上下反転する
+      cv::flip(gray, gray, 0);
+
+      for (int j = 0; j < stacks; ++j)
+      {
+        for (int i = 0; i < slices; ++i)
+        {
+          // x のパラメータ (0≦u≦1)
+          const float u{ float(i) / float(slices - 1) };
+
+          // y のパラメータ (0≦v≦1)
+          const float v{ float(j) / float(stacks - 1) };
+
+          // 点の位置
+          point[j][i][0] = (4.0f * u - 2.0f) * aspect;
+          point[j][i][1] = 4.0f * v - 2.0f;
+
+          // 画素のグレースケール値で決定する
+          point[j][i][2] = gray.at<unsigned char>(j, i) * 0.001f;
+        }
+      }
+
+      // 点データを更新する
+      submitPoint(stacks, slices, point);
     }
   }
-
-  // cycle ごとに 0→1 に変化する値
-  const float t{ fmod(getTime(), cycle) / cycle };
-
-  // cycle ごとに 0→2π に変化する位相
-  const float phase{ 2.0f * pi * t };
-
-  for (int j = 0; j < stacks; ++j)
-  {
-    for (int i = 0; i < slices; ++i)
-    {
-      // x 方向のパラメータ (0≦u≦1)
-      const float u{ float(i) / float(slices - 1) };
-
-      // y 方向のパラメータ (0≦v≦1)
-      const float v{ float(j) / float(stacks - 1) };
-
-      // 頂点の位置
-      point[j][i][0] = (4.0f * u - 2.0f) * aspect;
-      point[j][i][1] = 4.0f * v - 2.0f;
-
-      // 高さを中心からの距離で決定する
-      const float r{ hypot(point[j][i][0], point[j][i][1]) };
-      point[j][i][2] = sin(2.0f * pi * r + phase) * 0.2f;
-    }
-  }
-
-  // 点データを更新する
-  submitPoint(slices, stacks, point);
 
   // プログラムを終了しない
   return true;
