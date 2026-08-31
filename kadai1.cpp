@@ -16,6 +16,9 @@ static unsigned char color[stacks][slices][3];
 // 円周率
 constexpr float pi{ 3.14159265f };
 
+// 周期
+constexpr float cycle{ 5.0f };
+
 //
 // 設定（最初に一度だけ実行されます）
 //
@@ -41,12 +44,7 @@ bool setup()
       const float latitude{ pi * v };
 
       // 緯度に対応した色のスケール
-      const float latitude_color{ sin(10.0f * pi * v) * 0.5f + 0.5f };
-
-      // 頂点の位置
-      point[j][i][0] = sin(latitude) * sin(longtude);
-      point[j][i][1] = -cos(latitude);
-      point[j][i][2] = sin(latitude) * cos(longtude);
+      const float latitude_color(sin(10.0f * pi * v) * 0.5f + 0.5f);
 
       // 頂点の色
       color[j][i][0] = 100;
@@ -56,7 +54,7 @@ bool setup()
   }
 
   // 点データを登録する
-  createPoint(slices, stacks, point);
+  createPoint(slices, stacks);
 
   // 色データを登録する
   createColor(slices, stacks, color);
@@ -70,6 +68,44 @@ bool setup()
 //
 bool update()
 {
+  // cycle ごとに 0→1 に変化する値
+  const float t(fmod(getTime(), cycle) / cycle);
+
+  for (int j = 0; j < stacks; ++j)
+  {
+    for (int i = 0; i < slices; ++i)
+    {
+      // x 方向のパラメータ (0≦u≦1)
+      const float u{ float(i) / float(slices - 1) };
+
+      // 経度
+      const float longtude{ 2.0f * pi * u };
+
+      // 経度に対応した色のスケール
+      const float longtude_color{ sin(10.0f * pi * u) * 0.5f + 0.5f };
+
+      // y 方向のパラメータ (0≦v≦1)
+      const float v{ float(j) / float(stacks - 1) };
+
+      // 緯度
+      const float latitude{ pi * v };
+
+      // 緯度に対応した色のスケール
+      const float latitude_color{ sin(10.0f * pi * v) * 0.5f + 0.5f };
+
+      // 形状のスケール
+      const float scale{ sin(2.0f * pi * t) + 1.0f };
+
+      // 頂点の位置
+      point[j][i][0] = scale * sin(latitude) * sin(longtude);
+      point[j][i][1] = -scale * cos(latitude);
+      point[j][i][2] = scale * sin(latitude) * cos(longtude);
+    }
+  }
+
+  // 点データを登録する
+  submitPoint(slices, stacks, point);
+
   // プログラムを終了しない
   return true;
 }
