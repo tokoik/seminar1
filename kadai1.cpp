@@ -76,9 +76,9 @@ bool update()
       const float v{ float(j) / float(stacks - 1) };
 
       // 頂点の位置
-      point[j][i][0] = u * 2.0f - 1.0f;
-      point[j][i][1] = v * 4.0f - 2.0f;
-      point[j][i][2] = 0.0f;
+      point[j][i][0] = 2.0f * u - 1.0f;
+      point[j][i][1] = 4.0f * v - 2.0f;
+      point[j][i][2] = sin(8.0f * pi * v) * 0.2f;
     }
   }
 
