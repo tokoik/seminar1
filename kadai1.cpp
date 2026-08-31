@@ -16,6 +16,9 @@ static unsigned char color[stacks][slices][3];
 // 円周率
 constexpr float pi{ 3.14159265f };
 
+// 周期
+constexpr float cycle{ 5.0f };
+
 //
 // 設定（最初に一度だけ実行されます）
 //
@@ -65,6 +68,12 @@ bool setup()
 //
 bool update()
 {
+  // cycle ごとに 0→1 に変化する値
+  const float t{ fmod(getTime(), cycle) / cycle };
+
+  // cycle ごとに 0→2π に変化する位相
+  const float phase{ 2.0f * pi * t };
+
   for (int j = 0; j < stacks; ++j)
   {
     for (int i = 0; i < slices; ++i)
@@ -78,7 +87,7 @@ bool update()
       // 頂点の位置
       point[j][i][0] = 2.0f * u - 1.0f;
       point[j][i][1] = 4.0f * v - 2.0f;
-      point[j][i][2] = sin(8.0f * pi * v) * 0.2f;
+      point[j][i][2] = sin(8.0f * pi * v + phase) * 0.2f;
     }
   }
 
