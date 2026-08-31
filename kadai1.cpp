@@ -28,13 +28,16 @@ bool setup()
       // x 方向のパラメータ (0≦u≦1)
       const float u{ float(i) / float(slices - 1) };
 
+      // 経度
+      const float longtude{ 2.0f * pi * u };
+
       // y 方向のパラメータ (0≦v≦1)
       const float v{ float(j) / float(stacks - 1) };
 
       // 頂点の位置
-      point[j][i][0] = u * 2.0f - 1.0f;
+      point[j][i][0] = sin(longtude);
       point[j][i][1] = v * 2.0f - 1.0f;
-      point[j][i][2] = 0.0f;
+      point[j][i][2] = cos(longtude);
 
       // 頂点の色
       color[j][i][0] = 100;
