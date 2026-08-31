@@ -10,8 +10,8 @@ constexpr int slices{ 200 }, stacks{ 200 };
 // 点のデータ
 static float point[stacks][slices][3];
 
-// 色のデータ
-static unsigned char color[stacks][slices][3];
+// 色データのアスペクト比
+static float aspect;
 
 // 円周率
 constexpr float pi{ 3.14159265f };
@@ -24,40 +24,17 @@ constexpr float cycle{ 5.0f };
 //
 bool setup()
 {
-  for (int j = 0; j < stacks; ++j)
-  {
-    for (int i = 0; i < slices; ++i)
-    {
-      // x 方向のパラメータ (0≦u≦1)
-      const float u{ float(i) / float(slices - 1) };
-
-      // 経度
-      const float longtude{ 2.0f * pi * u };
-
-      // 経度に対応した色のスケール
-      const float longtude_color{ sin(10.0f * pi * u) * 0.5f + 0.5f };
-
-      // y 方向のパラメータ (0≦v≦1)
-      const float v{ float(j) / float(stacks - 1) };
-
-      // 緯度
-      const float latitude{ pi * v };
-
-      // 緯度に対応した色のスケール
-      const float latitude_color{ sin(10.0f * pi * v) * 0.5f + 0.5f };
-
-      // 頂点の色
-      color[j][i][0] = 100;
-      color[j][i][1] = (unsigned char)(255 * latitude_color);
-      color[j][i][2] = (unsigned char)(255 * longtude_color);
-    }
-  }
-
   // 点データを登録する
   createPoint(slices, stacks);
 
+  // 画像の読み込み
+  const cv::Mat image{ cv::imread("image.jpg") };
+
   // 色データを登録する
-  createColor(slices, stacks, color);
+  createColor(image);
+
+  // 色データのアスペクト比を求める
+  aspect = float(image.cols) / float(image.rows);
 
   // セットアップに成功した
   return true;
@@ -85,7 +62,7 @@ bool update()
       const float v{ float(j) / float(stacks - 1) };
 
       // 頂点の位置
-      point[j][i][0] = 2.0f * u - 1.0f;
+      point[j][i][0] = (4.0f * u - 2.0f) * aspect;
       point[j][i][1] = 4.0f * v - 2.0f;
 
       // 高さを中心からの距離で決定する
