@@ -31,6 +31,9 @@ bool setup()
       // 経度
       const float longtude{ 2.0f * pi * u };
 
+      // 経度に対応した色のスケール
+      const float longtude_color{ sin(10.0f * pi * u) * 0.5f + 0.5f };
+
       // y 方向のパラメータ (0≦v≦1)
       const float v{ float(j) / float(stacks - 1) };
 
@@ -48,7 +51,7 @@ bool setup()
       // 頂点の色
       color[j][i][0] = 100;
       color[j][i][1] = (unsigned char)(255 * latitude_color);
-      color[j][i][2] = 0;
+      color[j][i][2] = (unsigned char)(255 * longtude_color);
     }
   }
 
