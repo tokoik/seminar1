@@ -93,8 +93,11 @@ bool update()
       // 緯度に対応した色のスケール
       const float latitude_color{ sin(10.0f * pi * v) * 0.5f + 0.5f };
 
+      // 緯度経度に対するスケール
+      const float s{ (sin(10.0f * latitude) * 0.5f + 0.5f) * (sin(10.0f * longtude) * 0.5f + 0.5f)} ;
+
       // 形状のスケール
-      const float scale{ sin(2.0f * pi * t) + 1.0f };
+      const float scale{ sin(2.0f * pi * t) * s + 1.0f };
 
       // 頂点の位置
       point[j][i][0] = scale * sin(latitude) * sin(longtude);
