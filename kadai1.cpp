@@ -28,23 +28,30 @@ bool setup()
       // x 方向のパラメータ (0≦u≦1)
       const float u{ float(i) / float(slices - 1) };
 
+      // 経度
+      const float longtude{ 2.0f * pi * u };
+
+      // 経度に対応した色のスケール
+      const float longtude_color{ sin(10.0f * pi * u) * 0.5f + 0.5f };
+
       // y 方向のパラメータ (0≦v≦1)
       const float v{ float(j) / float(stacks - 1) };
 
-      // 頂点の位置
-      point[j][i][0] = u * 2.0f - 1.0f;
-      point[j][i][1] = v * 2.0f - 1.0f;
-      point[j][i][2] = 0.0f;
+      // 緯度
+      const float latitude{ pi * v };
+
+      // 緯度に対応した色のスケール
+      const float latitude_color{ sin(10.0f * pi * v) * 0.5f + 0.5f };
 
       // 頂点の色
       color[j][i][0] = 100;
-      color[j][i][1] = 0;
-      color[j][i][2] = 0;
+      color[j][i][1] = (unsigned char)(255 * latitude_color);
+      color[j][i][2] = (unsigned char)(255 * longtude_color);
     }
   }
 
   // 点データを登録する
-  createPoint(slices, stacks, point);
+  createPoint(slices, stacks);
 
   // 色データを登録する
   createColor(slices, stacks, color);
@@ -58,6 +65,26 @@ bool setup()
 //
 bool update()
 {
+  for (int j = 0; j < stacks; ++j)
+  {
+    for (int i = 0; i < slices; ++i)
+    {
+      // x 方向のパラメータ (0≦u≦1)
+      const float u{ float(i) / float(slices - 1) };
+
+      // y 方向のパラメータ (0≦v≦1)
+      const float v{ float(j) / float(stacks - 1) };
+
+      // 頂点の位置
+      point[j][i][0] = u * 2.0f - 1.0f;
+      point[j][i][1] = v * 4.0f - 2.0f;
+      point[j][i][2] = 0.0f;
+    }
+  }
+
+  // 点データを更新する
+  submitPoint(slices, stacks, point);
+
   // プログラムを終了しない
   return true;
 }
