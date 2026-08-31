@@ -87,7 +87,10 @@ bool update()
       // 頂点の位置
       point[j][i][0] = 2.0f * u - 1.0f;
       point[j][i][1] = 4.0f * v - 2.0f;
-      point[j][i][2] = sin(8.0f * pi * v + phase) * 0.2f;
+
+      // 高さを中心からの距離で決定する
+      const float r{ hypot(point[j][i][0], point[j][i][1]) };
+      point[j][i][2] = sin(2.0f * pi * r + phase) * 0.2f;
     }
   }
 
