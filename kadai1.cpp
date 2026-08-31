@@ -1,4 +1,4 @@
-﻿﻿// 共通の関数
+﻿// 共通の関数
 #include "common.h"
 
 // 標準ライブラリ
@@ -89,6 +89,12 @@ bool update()
       // グレースケール画像に変換する
       cv::Mat gray;
       cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+
+      // エッジ検出
+      cv::Mat sobelX, sobelY;
+      cv::Sobel(gray, sobelX, CV_8U, 1, 0);
+      cv::Sobel(gray, sobelY, CV_8U, 0, 1);
+      gray = (sobelX + sobelY) * 0.5;
 
       // 取得したフレームを転送する
       submitColor(image);
