@@ -19,6 +19,12 @@ constexpr float pi{ 3.14159265f };
 // 周期
 constexpr float cycle{ 5.0f };
 
+// ビデオ入力
+cv::VideoCapture video;
+
+// 最初のフレームを取得した時刻
+double start;
+
 //
 // 設定（最初に一度だけ実行されます）
 //
@@ -27,8 +33,20 @@ bool setup()
   // 点データを登録する
   createPoint(slices, stacks);
 
-  // 画像の読み込み
-  const cv::Mat image{ cv::imread("image.jpg") };
+  // ビデオの取得開始
+  if (!video.open("video.mp4")) return false;
+
+  // ムービーファイルの1フレームの一時保存先
+  cv::Mat image;
+
+  // 最初のフレームを取得する
+  if (!video.grab()) return false;
+
+  // 最初のフレームを取得した時刻を記録しておく
+  start = getTime();
+
+  // 取得したフレームを保存する
+  video.retrieve(image);
 
   // 色データを登録する
   createColor(image);
@@ -45,6 +63,34 @@ bool setup()
 //
 bool update()
 {
+  // 経過時間
+  const double elaps{ getTime() - start };
+
+  // 経過時間が現在のフレームの時刻に達していたら
+  if (elaps >= video.get(cv::CAP_PROP_POS_MSEC) * 0.001)
+  {
+    // 1フレーム取得する
+    if (!video.grab())
+    {
+      // フレームが取得できなかったらムービーファイルを巻き戻す
+      video.set(cv::CAP_PROP_POS_MSEC, 0.0);
+
+      // 経過時間をリセットする
+      start = getTime();
+    }
+    else
+    {
+      // ムービーファイルの1フレームの一時保存先
+      cv::Mat image;
+
+      // 取得したフレームを保存する
+      video.retrieve(image);
+
+      // 取得したフレームを転送する
+      submitColor(image);
+    }
+  }
+
   // cycle ごとに 0→1 に変化する値
   const float t{ fmod(getTime(), cycle) / cycle };
 
