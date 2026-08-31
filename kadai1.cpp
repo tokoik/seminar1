@@ -86,6 +86,13 @@ bool update()
       // 取得したフレームを保存する
       video.retrieve(image);
 
+      // グレースケール画像に変換する
+      cv::Mat gray;
+      cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+
+      // グレースケール画像を BGR に戻す
+      cv::cvtColor(gray, image, cv::COLOR_GRAY2BGR);
+
       // 取得したフレームを転送する
       submitColor(image);
     }
