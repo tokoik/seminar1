@@ -85,7 +85,51 @@ if(APPLE)
     # アプリケーションバンドルとして実行ファイルを作成する
     add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCES} ${HEADERS} ${SHADER_FILES} ${RESOURCE_FILES} ${ICON_FILE})
 
-    find_package(OpenCV REQUIRED)
+        # OpenCV の検索（未インストールの場合は libs/ に自動ダウンロードしてビルド）
+    find_package(OpenCV QUIET)
+    if(NOT OpenCV_FOUND)
+        message(STATUS "OpenCV not found in system. Setting up OpenCV in libs/...")
+        set(LIBS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs")
+        set(OPENCV_SRC_DIR "${LIBS_DIR}/opencv-4.13.0")
+        if(NOT EXISTS "${OPENCV_SRC_DIR}/CMakeLists.txt")
+            if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../calib/libs/opencv-4.13.0/CMakeLists.txt")
+                message(STATUS "Copying cached OpenCV source from calib/libs/opencv-4.13.0...")
+                file(MAKE_DIRECTORY "${LIBS_DIR}")
+                file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/../calib/libs/opencv-4.13.0" DESTINATION "${LIBS_DIR}")
+            else()
+                message(STATUS "Downloading OpenCV 4.13.0 source...")
+                file(MAKE_DIRECTORY "${LIBS_DIR}")
+                file(DOWNLOAD "https://github.com/opencv/opencv/archive/refs/tags/4.13.0.zip" "${LIBS_DIR}/opencv_src.zip" SHOW_PROGRESS)
+                execute_process(COMMAND ${CMAKE_COMMAND} -E tar -xf opencv_src.zip WORKING_DIRECTORY "${LIBS_DIR}")
+                file(REMOVE "${LIBS_DIR}/opencv_src.zip")
+            endif()
+        endif()
+        set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_world ON CACHE BOOL "" FORCE)
+        set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(BUILD_PERF_TESTS OFF CACHE BOOL "" FORCE)
+        set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+        set(BUILD_DOCS OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_apps OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_python2 OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_python3 OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_java OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_calib3d ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_features2d ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_flann ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_highgui ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_imgcodecs ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_imgproc ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_ml OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_objdetect ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_photo OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_video ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_videoio ON CACHE BOOL "" FORCE)
+        set(OPENCV_SKIP_VISIBILITY_HIDDEN ON CACHE BOOL "" FORCE)
+        add_subdirectory("${OPENCV_SRC_DIR}" EXCLUDE_FROM_ALL)
+        set(OpenCV_LIBS opencv_world)
+        set(OpenCV_INCLUDE_DIRS "${OPENCV_SRC_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}")
+    endif()
     find_library(OPENGL_LIBRARY OpenGL)
 
     target_include_directories(${PROJECT_NAME} PRIVATE
@@ -114,6 +158,9 @@ if(APPLE)
         MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2019-2026 Kohe Tokoi. All rights reserved."
         XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.yourcompany.${PROJECT_NAME}"
         XCODE_GENERATE_SCHEME ON
+        XCODE_SCHEME_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "@executable_path/../Frameworks"
     )
 
     # リソースファイルなどをアプリケーションバンドル内の Resources に組み込む
@@ -122,6 +169,17 @@ if(APPLE)
     set_source_files_properties(${ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
     set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY XCODE_GENERATE_SCHEME ON)
+
+    # 外部ダウンロードビルド時の dylib をバンドルの Frameworks に配置
+    if(TARGET opencv_world)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${PROJECT_NAME}>/../Frameworks
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:opencv_world> $<TARGET_FILE_DIR:${PROJECT_NAME}>/../Frameworks/
+            COMMAND install_name_tool -id @executable_path/../Frameworks/$<TARGET_FILE_NAME:opencv_world> $<TARGET_FILE_DIR:${PROJECT_NAME}>/../Frameworks/$<TARGET_FILE_NAME:opencv_world>
+            COMMAND install_name_tool -change $<TARGET_FILE:opencv_world> @executable_path/../Frameworks/$<TARGET_FILE_NAME:opencv_world> $<TARGET_FILE:${PROJECT_NAME}>
+        )
+    endif()
+
 
 elseif(WIN32)
 
@@ -199,7 +257,51 @@ else()
     # Ubuntu Linux (その他UNIX系) の設定
     add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${SHADER_FILES} ${RESOURCE_FILES})
 
-    find_package(OpenCV REQUIRED)
+        # OpenCV の検索（未インストールの場合は libs/ に自動ダウンロードしてビルド）
+    find_package(OpenCV QUIET)
+    if(NOT OpenCV_FOUND)
+        message(STATUS "OpenCV not found in system. Setting up OpenCV in libs/...")
+        set(LIBS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs")
+        set(OPENCV_SRC_DIR "${LIBS_DIR}/opencv-4.13.0")
+        if(NOT EXISTS "${OPENCV_SRC_DIR}/CMakeLists.txt")
+            if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../calib/libs/opencv-4.13.0/CMakeLists.txt")
+                message(STATUS "Copying cached OpenCV source from calib/libs/opencv-4.13.0...")
+                file(MAKE_DIRECTORY "${LIBS_DIR}")
+                file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/../calib/libs/opencv-4.13.0" DESTINATION "${LIBS_DIR}")
+            else()
+                message(STATUS "Downloading OpenCV 4.13.0 source...")
+                file(MAKE_DIRECTORY "${LIBS_DIR}")
+                file(DOWNLOAD "https://github.com/opencv/opencv/archive/refs/tags/4.13.0.zip" "${LIBS_DIR}/opencv_src.zip" SHOW_PROGRESS)
+                execute_process(COMMAND ${CMAKE_COMMAND} -E tar -xf opencv_src.zip WORKING_DIRECTORY "${LIBS_DIR}")
+                file(REMOVE "${LIBS_DIR}/opencv_src.zip")
+            endif()
+        endif()
+        set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_world ON CACHE BOOL "" FORCE)
+        set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(BUILD_PERF_TESTS OFF CACHE BOOL "" FORCE)
+        set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+        set(BUILD_DOCS OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_apps OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_python2 OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_python3 OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_java OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_calib3d ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_features2d ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_flann ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_highgui ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_imgcodecs ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_imgproc ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_ml OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_objdetect ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_photo OFF CACHE BOOL "" FORCE)
+        set(BUILD_opencv_video ON CACHE BOOL "" FORCE)
+        set(BUILD_opencv_videoio ON CACHE BOOL "" FORCE)
+        set(OPENCV_SKIP_VISIBILITY_HIDDEN ON CACHE BOOL "" FORCE)
+        add_subdirectory("${OPENCV_SRC_DIR}" EXCLUDE_FROM_ALL)
+        set(OpenCV_LIBS opencv_world)
+        set(OpenCV_INCLUDE_DIRS "${OPENCV_SRC_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}")
+    endif()
     find_package(OpenGL REQUIRED)
 
     target_include_directories(${PROJECT_NAME} PRIVATE
